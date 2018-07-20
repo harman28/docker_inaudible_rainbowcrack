@@ -19,6 +19,10 @@ else
       if [[ ! -v activation_bytes[$FILE_CHECKSUM] ]]; then
         echo "Running RainbowCrack against checksum: $FILE_CHECKSUM"
         RAINBOWCRACK_RESULT=`./rcrack . -h $FILE_CHECKSUM | tail -1`
+        if [ $? -ne 0 ]; then
+          echo "Error running RainbowCrack, exiting."
+          exit 1
+        fi
         ACTIVATION_BYTES=${RAINBOWCRACK_RESULT##*:}
         echo "Retrieved activation bytes: ${ACTIVATION_BYTES}"
         activation_bytes[$FILE_CHECKSUM]=$ACTIVATION_BYTES
