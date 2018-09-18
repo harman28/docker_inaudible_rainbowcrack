@@ -11,3 +11,5 @@ Map a directory containing one or more AAX files to the `/data` volume, then run
 For example you could `cd` to a directory containing your AAX files and run:
 
     docker run -v $(pwd):/data ryanfb/inaudible
+
+You can also skip/override computing the activation bytes with rainbowcrack by passing them in with the `ACTIVATION_BYTES` environment variable.

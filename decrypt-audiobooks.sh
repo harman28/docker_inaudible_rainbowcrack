@@ -17,15 +17,20 @@ else
       PROBE_RESULT=`ffprobe "$aax_file" 2>&1 | fgrep 'file checksum == '`
       FILE_CHECKSUM=${PROBE_RESULT##* }
       if [[ ! -v activation_bytes[$FILE_CHECKSUM] ]]; then
-        echo "Running RainbowCrack against checksum: $FILE_CHECKSUM"
-        RAINBOWCRACK_RESULT=`./rcrack . -h $FILE_CHECKSUM | tail -1`
-        if [ -z "$RAINBOWCRACK_RESULT" ]; then
-          echo "Error running RainbowCrack, exiting."
-          exit 1
+        if [[ ! -z "${ACTIVATION_BYTES}" ]]; then
+          echo "Setting activation bytes from ACTIVATION_BYTES environment variable: ${ACTIVATION_BYTES}"
+          activation_bytes[$FILE_CHECKSUM]="$ACTIVATION_BYTES"
+        else
+          echo "Running RainbowCrack against checksum: $FILE_CHECKSUM"
+          RAINBOWCRACK_RESULT=`./rcrack . -h $FILE_CHECKSUM | tail -1`
+          if [ -z "$RAINBOWCRACK_RESULT" ]; then
+            echo "Error running RainbowCrack, exiting."
+            exit 1
+          fi
+          RETRIEVED_ACTIVATION_BYTES=${RAINBOWCRACK_RESULT##*:}
+          echo "Retrieved activation bytes: ${RETRIEVED_ACTIVATION_BYTES}"
+          activation_bytes[$FILE_CHECKSUM]="$RETRIEVED_ACTIVATION_BYTES"
         fi
-        ACTIVATION_BYTES=${RAINBOWCRACK_RESULT##*:}
-        echo "Retrieved activation bytes: ${ACTIVATION_BYTES}"
-        activation_bytes[$FILE_CHECKSUM]=$ACTIVATION_BYTES
       fi
       echo "Running conversion, outputting to $m4a_file"
       ffmpeg -loglevel panic -y -activation_bytes ${activation_bytes[$FILE_CHECKSUM]} -i "$aax_file" -c:a copy -vn "$m4a_file"
